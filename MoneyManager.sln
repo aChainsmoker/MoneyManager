@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoneyManager.Main", "MoneyManager.Main\MoneyManager.Main.csproj", "{A93CBEC4-BA55-4009-A4D0-09D667DA1C39}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoneyManager.DataAccess", "MoneyManager.DataAccess\MoneyManager.DataAccess.csproj", "{958E31B1-DA6E-4FB3-B5E1-4BAD34AF591F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoneyManager.Utility", "MoneyManager.Utility\MoneyManager.Utility.csproj", "{367A409D-6138-490B-9E02-DFDC89DE2440}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A93CBEC4-BA55-4009-A4D0-09D667DA1C39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A93CBEC4-BA55-4009-A4D0-09D667DA1C39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A93CBEC4-BA55-4009-A4D0-09D667DA1C39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A93CBEC4-BA55-4009-A4D0-09D667DA1C39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{958E31B1-DA6E-4FB3-B5E1-4BAD34AF591F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{958E31B1-DA6E-4FB3-B5E1-4BAD34AF591F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{958E31B1-DA6E-4FB3-B5E1-4BAD34AF591F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{958E31B1-DA6E-4FB3-B5E1-4BAD34AF591F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{367A409D-6138-490B-9E02-DFDC89DE2440}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{367A409D-6138-490B-9E02-DFDC89DE2440}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{367A409D-6138-490B-9E02-DFDC89DE2440}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{367A409D-6138-490B-9E02-DFDC89DE2440}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
