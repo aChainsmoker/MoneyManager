@@ -5,12 +5,18 @@ namespace MoneyManager.DataAccess.Context;
 
 public class MoneyManagerDbContext : DbContext
 {
+    private readonly string _connectionString;
+
+    public MoneyManagerDbContext(string connectionString)
+    {
+        _connectionString = connectionString;
+    }
+    
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
         {
-            optionsBuilder.UseSqlServer(
-                "Server=(localdb)\\mssqllocaldb;Database=MoneyManagementDb;Trusted_Connection=True;");
+            optionsBuilder.UseSqlServer(_connectionString);
         }
     }
 

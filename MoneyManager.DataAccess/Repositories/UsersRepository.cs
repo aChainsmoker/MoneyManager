@@ -57,7 +57,17 @@ public class UsersRepository : BasicRepository<User>
             return null;
         }
 
-        var balance = await GetUserBalance(user, cancellationToken);
+        var balance = await _dbContext.Transactions.Join(_dbContext.Assets, 
+                t => t.AssetId, 
+                a => a.Id,
+                (t, a) => new { Transaction = t, Asset = a })
+            .Where(a => a.Asset.UserId == user.Id)
+            .Join(_dbContext.Categories, 
+                t => t.Transaction.CategoryId, 
+                c => c.Id,
+                (t, c) => new { Transaction = t.Transaction, Category = c })
+            .SumAsync(x => x.Category.Type == CategoryType.Income ? x.Transaction.Amount : -x.Transaction.Amount,
+                cancellationToken);
 
         return new UserBalanceDto(user.Id, user.Name, user.Email, balance);
     }
@@ -120,23 +130,5 @@ public class UsersRepository : BasicRepository<User>
                 new UserTransactionsDto(x.Asset.Name, x.Category.Name, x.ParentCategory.Name, x.Transaction.Amount, x.Transaction.Date, x.Transaction.Comment));
         
         return await userTransactions.ToListAsync(cancellationToken);
-    }
-
-
-    private async Task<decimal> GetUserBalance(User user, CancellationToken cancellationToken = default)
-    {
-        var balance = await _dbContext.Transactions.Join(_dbContext.Assets, 
-                t => t.AssetId, 
-                a => a.Id,
-                (t, a) => new { Transaction = t, Asset = a })
-            .Where(a => a.Asset.UserId == user.Id)
-            .Join(_dbContext.Categories, 
-                t => t.Transaction.CategoryId, 
-                c => c.Id,
-                (t, c) => new { Transaction = t.Transaction, Category = c })
-            .SumAsync(x => x.Category.Type == CategoryType.Income ? x.Transaction.Amount : -x.Transaction.Amount,
-                cancellationToken);
-
-        return balance;
     }
 }
