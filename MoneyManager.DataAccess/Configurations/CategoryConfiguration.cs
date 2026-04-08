@@ -13,5 +13,6 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
         builder.Property(x=>x.Name).IsRequired().HasMaxLength(64);
         builder.Property(x=>x.Type).IsRequired();
         builder.Property(x=>x.ParentId).IsRequired(false);
+        builder.Property(x=>x.Color).IsRequired().HasDefaultValue(2309453);
     }
 }

@@ -1,4 +1,5 @@
-﻿using MoneyManager.DataAccess.Context;
+﻿using Microsoft.EntityFrameworkCore;
+using MoneyManager.DataAccess.Context;
 using MoneyManager.DataAccess.Entities;
 using MoneyManager.DataAccess.Repositories;
 using MoneyManager.DataAccess.Repositories.Abstractions;
@@ -10,10 +11,9 @@ class Program
 {
     static async Task Main(string[] args)
     {
-        using var dbContext = new MoneyManagerDbContext("Server=localhost,1433;Database=master;User Id=sa;Password=YourStrong@Passw0rd!;TrustServerCertificate=True;Encrypt=False;");
+        using var dbContext = new MoneyManagerDbContext();
         var dbSeeder = new DbSeeder(dbContext);
-        if (dbContext.Database.EnsureCreated() || 
-            (!dbContext.Users.Any() && !dbContext.Categories.Any() && !dbContext.Transactions.Any() && !dbContext.Assets.Any()))
+        if (!dbContext.Users.Any() && !dbContext.Categories.Any() && !dbContext.Transactions.Any() && !dbContext.Assets.Any())
         {
             dbSeeder.SeedDb();
         }
@@ -23,7 +23,5 @@ class Program
 
         var userByEmail = await userRepository.GetUserByEmailAsync("david.wilson@example.com");
         Console.WriteLine(userByEmail?.Name);
-        
-        
     }
 }
