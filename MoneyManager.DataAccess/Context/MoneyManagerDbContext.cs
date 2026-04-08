@@ -5,15 +5,10 @@ namespace MoneyManager.DataAccess.Context;
 
 public class MoneyManagerDbContext : DbContext
 {
-    
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    public MoneyManagerDbContext(DbContextOptions<MoneyManagerDbContext> options) : base(options)
     {
-        if (!optionsBuilder.IsConfigured)
-        {
-            optionsBuilder.UseSqlServer("Server=localhost,1433;Database=MoneyManagementDb;User Id=sa;Password=YourStrong@Passw0rd!;TrustServerCertificate=True;Encrypt=False");
-        }
     }
-
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(MoneyManagerDbContext).Assembly);
