@@ -31,17 +31,6 @@ public class UsersRepository : BasicRepository<User>
                         && x.Transaction.Date < endOfMonth)
             .Select(x => x.Transaction.Id)
             .ToListAsync(cancellationToken);
-        
-        var transactions = await _dbContext.Transactions
-            .Join(_dbContext.Assets,
-                t => t.AssetId,
-                a => a.Id,
-                (t, a) => new { Transaction = t, Asset = a })
-            .Where(x => x.Asset.UserId == userId
-                        && x.Transaction.Date >= startOfMonth
-                        && x.Transaction.Date < endOfMonth)
-            .Select(x => x.Transaction)
-            .ToListAsync(cancellationToken);
 
         if (transactionIds.Count != 0)
         {
