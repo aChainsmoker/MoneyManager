@@ -10,6 +10,4 @@ public static class PasswordHasher
     {
         return BCrypt.Net.BCrypt.HashPassword(password, salt);    
     }
-
-    
 }
