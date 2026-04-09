@@ -2,14 +2,14 @@
 
 1. Install [Docker](https://www.docker.com)
 
-2. Build MS SQL Server container using next commands:
+2. Clone the repo and Build MS SQL Server container using next commands:
 ```
-https://github.com/aChainsmoker/MoneyManager.git
+git clone https://github.com/aChainsmoker/MoneyManager.git
 cd MoneyManager/
 docker compose up --build -d
 ```
 
-3. Start App
+3. Start the App
 ```
 dotnet run --project MoneyManager.Main/
 ```
