@@ -106,7 +106,7 @@ public class UsersRepository : BasicRepository<User>
                     .Sum(x => x.Type == CategoryType.Income ? x.Amount : -x.Amount)
             ))
             .ToListAsync(cancellationToken);
-        
+
         return userAssets;
     }
 
@@ -190,7 +190,7 @@ public class UsersRepository : BasicRepository<User>
         var startOfMonth = new DateTime(now.Year, now.Month, 1);
         var endOfMonth = startOfMonth.AddMonths(1);
 
-        var unsortedParentCategoryTotalAmountQuery = _dbContext.Transactions
+        var parentCategoryTotalAmount =await _dbContext.Transactions
             .Where(t => t.Date >= startOfMonth && t.Date < endOfMonth)
             .Join(_dbContext.Assets,
                 t => t.AssetId,
@@ -207,18 +207,17 @@ public class UsersRepository : BasicRepository<User>
                 (t, c) => new
                     { Transaction = t.Transaction, Asset = t.Asset, Category = t.Category, ParentCategory = c })
             .Where(t => t.ParentCategory.Type == categoryType)
-            .GroupBy(x => x.ParentCategory)
-            .Select(g => new ParentCategoryTotalAmountDto
-            (
-                g.Key.Name,
-                g.Sum(x => x.Transaction.Amount)
-            ));
+            .GroupBy(x => x.ParentCategory, x=>x.Transaction.Amount)
+            .Select(g => new 
+            {
+                CategoryName = g.Key.Name,
+                TotalAmount = g.Sum()
+            })
+            .OrderByDescending(x => x.TotalAmount)
+            .ThenBy(x => x.CategoryName)
+            .Select(x => new ParentCategoryTotalAmountDto(x.CategoryName, x.TotalAmount))
+            .ToListAsync(cancellationToken);;
         
-            var parentCategoryTotalAmount = (await unsortedParentCategoryTotalAmountQuery.ToListAsync(cancellationToken))
-                .OrderByDescending(x => x.TotalAmount)
-                .ThenBy(x => x.CategoryName)
-                .ToList();
-            
         return parentCategoryTotalAmount;
     }
 }
