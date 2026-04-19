@@ -13,7 +13,9 @@ public class MoneyManagerDbContext : DbContext
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(MoneyManagerDbContext).Assembly);
         modelBuilder.Ignore<EntityBase>();
-        modelBuilder.Entity<EntityBase>().UseTpcMappingStrategy();
+        modelBuilder
+            .Entity<EntityBase>()
+            .UseTpcMappingStrategy();
     }
     
     public DbSet<User> Users { get; set; }

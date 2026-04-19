@@ -10,9 +10,21 @@ public class UserConfiguration: IEntityTypeConfiguration<User>
     {
         builder.ToTable("User");
         builder.HasKey(x => x.Id);
-        builder.Property(x => x.Name).IsRequired().HasMaxLength(64);
-        builder.Property(x => x.Email).IsRequired().HasMaxLength(64);
-        builder.Property(x=>x.Hash).IsRequired().HasMaxLength(1024);
-        builder.Property(x=>x.Salt).IsRequired().HasMaxLength(1024);
+        builder
+            .Property(x => x.Name)
+            .IsRequired()
+            .HasMaxLength(64);
+        builder
+            .Property(x => x.Email)
+            .IsRequired()
+            .HasMaxLength(64);
+        builder
+            .Property(x=>x.Hash)
+            .IsRequired()
+            .HasMaxLength(1024);
+        builder
+            .Property(x=>x.Salt)
+            .IsRequired()
+            .HasMaxLength(1024);
     }
 }

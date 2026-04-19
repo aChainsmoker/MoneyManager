@@ -43,13 +43,15 @@ public class UsersRepository : BasicRepository<User>
     //Write a request to get the user by email
     public async Task<User?> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Users.Where(u => u.Email == email).FirstOrDefaultAsync(cancellationToken);
+        return await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
     }
 
     //Write a query to get the user list sorted by the user’s name. Each record of the output model should include User.Id, User.Name and User.Email
     public async Task<List<UserInfoDto>> GetUsersSortedByNameAsync(CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Users.OrderBy(u => u.Name).Select(u => new UserInfoDto(u.Id, u.Name, u.Email))
+        return await _dbContext.Users
+            .OrderBy(u => u.Name)
+            .Select(u => new UserInfoDto(u.Id, u.Name, u.Email))
             .ToListAsync(cancellationToken);
     }
 
@@ -161,7 +163,6 @@ public class UsersRepository : BasicRepository<User>
                 t => t.Transaction.CategoryId,
                 c => c.Id,
                 (t, c) => new { Transaction = t.Transaction, Asset = t.Asset, Category = c })
-
             .GroupBy(x => new { Year = x.Transaction.Date.Year, Month = x.Transaction.Date.Month })
             .OrderBy(x => x.Key.Year)
             .ThenBy(x => x.Key.Month)

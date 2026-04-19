@@ -14,7 +14,9 @@ class Program
     {
         var projectRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..\\..\\.."));
         var configPath = Path.Combine(projectRoot, "appsettings.json");
-        IConfiguration config = new ConfigurationBuilder().AddJsonFile(configPath).Build();
+        IConfiguration config = new ConfigurationBuilder()
+            .AddJsonFile(configPath)
+            .Build();
         var connectionString = config.GetConnectionString("SqlServerConnectionString");
         var optionsBuilder = new DbContextOptionsBuilder<MoneyManagerDbContext>();
         optionsBuilder.UseSqlServer(connectionString);
