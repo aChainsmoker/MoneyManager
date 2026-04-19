@@ -26,5 +26,9 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
             .Property(x=>x.Color)
             .IsRequired()
             .HasDefaultValue(2309453);
+        builder
+            .HasOne(x=>x.Parent)
+            .WithMany()
+            .HasForeignKey(x=>x.ParentId);
     }
 }

@@ -15,7 +15,7 @@ public class AssetConfigurations: IEntityTypeConfiguration<Asset>
             .IsRequired()
             .HasMaxLength(64);
         builder
-            .HasOne<User>()
+            .HasOne(x=>x.User)
             .WithMany()
             .HasForeignKey(x => x.UserId);
     }

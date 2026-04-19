@@ -20,24 +20,12 @@ public class UsersRepository : BasicRepository<User>
         var now = DateTime.Now;
         var startOfMonth = new DateTime(now.Year, now.Month, 1);
         var endOfMonth = startOfMonth.AddMonths(1);
-        
-        var transactionIds = await _dbContext.Transactions
-            .Join(_dbContext.Assets,
-                t => t.AssetId,
-                a => a.Id,
-                (t, a) => new { Transaction = t, Asset = a })
-            .Where(x => x.Asset.UserId == userId
-                        && x.Transaction.Date >= startOfMonth
-                        && x.Transaction.Date < endOfMonth)
-            .Select(x => x.Transaction.Id)
-            .ToListAsync(cancellationToken);
 
-        if (transactionIds.Count != 0)
-        {
-            await _dbContext.Transactions
-                .Where(t => transactionIds.Contains(t.Id))
-                .ExecuteDeleteAsync(cancellationToken);
-        }
+        await _dbContext.Transactions
+            .Where(t => t.Asset.UserId == userId
+                       && t.Date >= startOfMonth
+                       && t.Date < endOfMonth)
+            .ExecuteDeleteAsync(cancellationToken);
     }
 
     //Write a request to get the user by email
@@ -59,52 +47,40 @@ public class UsersRepository : BasicRepository<User>
     //Each record of the output model should include User.Id, User.Email, User.Name, and Balance
     public async Task<UserBalanceDto?> GetUserBalanceAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        var user = await _dbContext.Users.FindAsync(userId, cancellationToken);
+        var user = await _dbContext.Users.FindAsync([userId], cancellationToken);
         if (user == null)
         {
             return null;
         }
 
-        var balance = await _dbContext.Transactions.Join(_dbContext.Assets, 
-                t => t.AssetId, 
-                a => a.Id,
-                (t, a) => new { Transaction = t, Asset = a })
-            .Where(a => a.Asset.UserId == user.Id)
-            .Join(_dbContext.Categories, 
-                t => t.Transaction.CategoryId, 
-                c => c.Id,
-                (t, c) => new { Transaction = t.Transaction, Category = c })
-            .SumAsync(x => x.Category.Type == CategoryType.Income ? x.Transaction.Amount : -x.Transaction.Amount,
-                cancellationToken);
+        var balance = await _dbContext.Transactions
+            .Where(t => t.Asset.UserId == userId)
+            .SumAsync(t => t.Category.Type == CategoryType.Income ? t.Amount : -t.Amount, cancellationToken);
 
         return new UserBalanceDto(user.Id, user.Name, user.Email, balance);
     }
 
-    //Write a query to get the asset list for the selected user (userId) ordered by the asset’s name.
+    //Write a query to get the asset list for the selected user (userId) ordered by the asset's name.
     //Each record of the output model should include Asset.Id, Asset.Name and Balance
     public async Task<List<UserAssetsDto>?> GetUserAssetsAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        var user = await _dbContext.Users.FindAsync(userId, cancellationToken);
+        var user = await _dbContext.Users.FindAsync([userId], cancellationToken);
         if (user == null)
         {
             return null;
         }
 
-        var userAssets = await _dbContext.Assets
-            .Where(a => a.UserId == userId)
-            .OrderBy(a => a.Name)
-            .Select(a => new UserAssetsDto
-            (
-                a.Id,
-                a.Name,
-                _dbContext.Transactions
-                    .Where(t => t.AssetId == a.Id)
-                    .Join(_dbContext.Categories,
-                        t => t.CategoryId,
-                        c => c.Id,
-                        (t, c) => new { t.Amount, c.Type })
-                    .Sum(x => x.Type == CategoryType.Income ? x.Amount : -x.Amount)
-            ))
+        var userAssets = await _dbContext.Transactions
+            .Where(t => t.Asset.UserId == userId)
+            .GroupBy(t => new { t.Asset.Id, t.Asset.Name })
+            .Select(g => new
+            {
+                AssetId = g.Key.Id,
+                AssetName = g.Key.Name,
+                Balance = g.Sum(t => t.Category.Type == CategoryType.Income ? t.Amount : -t.Amount)
+            })
+            .OrderBy(dto => dto.AssetName)
+            .Select(a=>new UserAssetsDto(a.AssetId, a.AssetName, a.Balance))
             .ToListAsync(cancellationToken);
 
         return userAssets;
@@ -116,32 +92,35 @@ public class UsersRepository : BasicRepository<User>
     public async Task<List<UserTransactionsDto>?> GetUserTransactionsAsync(Guid userId,
         CancellationToken cancellationToken = default)
     {
-        var user = await _dbContext.Users.FindAsync(userId, cancellationToken);
+        var user = await _dbContext.Users.FindAsync([userId], cancellationToken);
         if (user == null)
         {
             return null;
         }
 
-        var userTransactions = await _dbContext.Transactions.Join(_dbContext.Assets,
-                t => t.AssetId,
-                a => a.Id,
-                (t, a) => new { Transaction = t, Asset = a })
+        var userTransactions = await _dbContext.Transactions
             .Where(t => t.Asset.UserId == userId)
-            .Join(_dbContext.Categories,
-                t => t.Transaction.CategoryId,
-                c => c.Id,
-                (t, c) => new { Transaction = t.Transaction, Asset = t.Asset, Category = c })
-            .GroupJoin(_dbContext.Categories,
-                t => t.Category.ParentId,
-                c => c.Id,
-                (t, c) => new
-                    { Transaction = t.Transaction, Asset = t.Asset, Category = t.Category, ParentCategory = c.FirstOrDefault() })
-            .OrderByDescending(x => x.Transaction.Date)
-            .ThenBy(x => x.Asset.Name)
-            .ThenBy(x => x.Category.Name)
-            .Select(x => 
-                new UserTransactionsDto(x.Asset.Name, x.Category.Name, x.ParentCategory != null ? x.ParentCategory.Name : null,
-                    x.Transaction.Amount, x.Transaction.Date, x.Transaction.Comment))
+            .Select(t => new 
+            {
+                AssetName = t.Asset.Name,
+                SubcategoryName = t.Category.Name,
+                ParentCategoryName = t.Category.Parent != null ? t.Category.Parent.Name : null,
+                Amount = t.Amount,
+                Date = t.Date,
+                Comment = t.Comment
+            })
+            .OrderByDescending(x => x.Date)
+            .ThenBy(x => x.AssetName)
+            .ThenBy(x => x.SubcategoryName)
+            .Select(x=> new UserTransactionsDto
+                (
+                    x.AssetName, 
+                    x.SubcategoryName, 
+                    x.ParentCategoryName, 
+                    x.Amount, 
+                    x.Date, 
+                    x.Comment
+                ))
             .ToListAsync(cancellationToken);
         
         return userTransactions;
@@ -153,23 +132,13 @@ public class UsersRepository : BasicRepository<User>
         DateTime endDate, CancellationToken cancellationToken = default)
     {
         var totalValueOfIncomeAndExpenses = await _dbContext.Transactions
-            .Where(t => t.Date >= startDate && t.Date <= endDate)
-            .Join(_dbContext.Assets,
-                t => t.AssetId,
-                a => a.Id,
-                (t, a) => new { Transaction = t, Asset = a })
-            .Where(x => x.Asset.UserId == userId)
-            .Join(_dbContext.Categories,
-                t => t.Transaction.CategoryId,
-                c => c.Id,
-                (t, c) => new { Transaction = t.Transaction, Asset = t.Asset, Category = c })
-            .GroupBy(x => new { Year = x.Transaction.Date.Year, Month = x.Transaction.Date.Month })
-            .OrderBy(x => x.Key.Year)
-            .ThenBy(x => x.Key.Month)
-            .Select(g => new TimePeriodIncomeExpensesDto
-            (
-                g.Sum(x => x.Category.Type == CategoryType.Income ? x.Transaction.Amount : 0),
-                g.Sum(x => x.Category.Type == CategoryType.Expense ? x.Transaction.Amount : 0),
+            .Where(t => t.Date >= startDate && t.Date <= endDate && t.Asset.UserId == userId)
+            .GroupBy(t => new { Year = t.Date.Year, Month = t.Date.Month })
+            .OrderBy(g => g.Key.Year)
+            .ThenBy(g => g.Key.Month)
+            .Select(g => new TimePeriodIncomeExpensesDto(
+                g.Sum(t => t.Category.Type == CategoryType.Income ? t.Amount : 0),
+                g.Sum(t => t.Category.Type == CategoryType.Expense ? t.Amount : 0),
                 g.Key.Year,
                 g.Key.Month
             ))
@@ -177,7 +146,6 @@ public class UsersRepository : BasicRepository<User>
 
         return totalValueOfIncomeAndExpenses;
     }
-
     
     //Write a query to return the total amount of all parent categories for the selected type of operation (Income or Expenses).
     //The result should include only categories that have transactions in the current month. Input parameters in this query are UserId and
@@ -190,33 +158,22 @@ public class UsersRepository : BasicRepository<User>
         var startOfMonth = new DateTime(now.Year, now.Month, 1);
         var endOfMonth = startOfMonth.AddMonths(1);
 
-        var parentCategoryTotalAmount =await _dbContext.Transactions
-            .Where(t => t.Date >= startOfMonth && t.Date < endOfMonth)
-            .Join(_dbContext.Assets,
-                t => t.AssetId,
-                a => a.Id,
-                (t, a) => new { Transaction = t, Asset = a })
-            .Where(x => x.Asset.UserId == userId)
-            .Join(_dbContext.Categories,
-                t => t.Transaction.CategoryId,
-                c => c.Id,
-                (t, c) => new { Transaction = t.Transaction, Asset = t.Asset, Category = c })
-            .Join(_dbContext.Categories,
-                t => t.Category.ParentId,
-                c => c.Id,
-                (t, c) => new
-                    { Transaction = t.Transaction, Asset = t.Asset, Category = t.Category, ParentCategory = c })
-            .Where(t => t.ParentCategory.Type == categoryType)
-            .GroupBy(x => x.ParentCategory, x=>x.Transaction.Amount)
+        var parentCategoryTotalAmount = await _dbContext.Transactions
+            .Where(t => t.Date >= startOfMonth 
+                        && t.Date < endOfMonth 
+                        && t.Asset.UserId == userId
+                        && t.Category.Parent != null
+                        && t.Category.Parent.Type == categoryType)
+            .GroupBy(t => new { t.Category.Parent!.Id, t.Category.Parent!.Name })
             .Select(g => new 
             {
                 CategoryName = g.Key.Name,
-                TotalAmount = g.Sum()
+                TotalAmount = g.Sum(t => t.Amount)
             })
-            .OrderByDescending(x => x.TotalAmount)
-            .ThenBy(x => x.CategoryName)
-            .Select(x => new ParentCategoryTotalAmountDto(x.CategoryName, x.TotalAmount))
-            .ToListAsync(cancellationToken);;
+            .OrderByDescending(dto => dto.TotalAmount)
+            .ThenBy(dto => dto.CategoryName)
+            .Select(x=>new ParentCategoryTotalAmountDto(x.CategoryName, x.TotalAmount))
+            .ToListAsync(cancellationToken);
         
         return parentCategoryTotalAmount;
     }

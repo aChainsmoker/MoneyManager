@@ -11,7 +11,8 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
         builder.ToTable("Transaction");
         builder.HasKey(x => x.Id);
         builder
-            .HasOne<Category>().WithMany()
+            .HasOne(x=>x.Category)
+            .WithMany()
             .HasForeignKey(x => x.CategoryId);
         builder
             .Property(x=>x.Amount)
@@ -22,7 +23,7 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
             .IsRequired()
             .HasPrecision(7);
         builder
-            .HasOne<Asset>()
+            .HasOne(x=>x.Asset)
             .WithMany()
             .HasForeignKey(x => x.AssetId);
         builder
