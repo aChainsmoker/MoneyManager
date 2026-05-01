@@ -11,23 +11,23 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
         builder.ToTable("Transaction");
         builder.HasKey(x => x.Id);
         builder
-            .HasOne(x=>x.Category)
+            .HasOne(x => x.Category)
             .WithMany()
             .HasForeignKey(x => x.CategoryId);
         builder
-            .Property(x=>x.Amount)
+            .Property(x => x.Amount)
             .IsRequired()
             .HasPrecision(16,3);
         builder
-            .Property(x=>x.Date)
+            .Property(x => x.Date)
             .IsRequired()
             .HasPrecision(7);
         builder
-            .HasOne(x=>x.Asset)
+            .HasOne(x => x.Asset)
             .WithMany()
             .HasForeignKey(x => x.AssetId);
         builder
-            .Property(x=>x.Comment)
+            .Property(x => x.Comment)
             .IsRequired(false)
             .HasMaxLength(1024);
     }

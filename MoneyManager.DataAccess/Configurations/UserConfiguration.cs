@@ -19,11 +19,11 @@ public class UserConfiguration: IEntityTypeConfiguration<User>
             .IsRequired()
             .HasMaxLength(64);
         builder
-            .Property(x=>x.Hash)
+            .Property(x => x.Hash)
             .IsRequired()
             .HasMaxLength(1024);
         builder
-            .Property(x=>x.Salt)
+            .Property(x => x.Salt)
             .IsRequired()
             .HasMaxLength(1024);
     }

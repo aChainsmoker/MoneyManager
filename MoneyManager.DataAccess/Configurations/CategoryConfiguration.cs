@@ -10,25 +10,25 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
     {
         builder.ToTable("Category");
         builder
-            .Property(x=>x.Name)
+            .Property(x => x.Name)
             .IsRequired();
         builder
-            .Property(x=>x.Name)
+            .Property(x => x.Name)
             .IsRequired()
             .HasMaxLength(64);
         builder
-            .Property(x=>x.Type)
+            .Property(x => x.Type)
             .IsRequired();
         builder
-            .Property(x=>x.ParentId)
+            .Property(x => x.ParentId)
             .IsRequired(false);
         builder
-            .Property(x=>x.Color)
+            .Property(x => x.Color)
             .IsRequired()
             .HasDefaultValue(2309453);
         builder
-            .HasOne(x=>x.Parent)
+            .HasOne(x => x.Parent)
             .WithMany()
-            .HasForeignKey(x=>x.ParentId);
+            .HasForeignKey(x => x.ParentId);
     }
 }

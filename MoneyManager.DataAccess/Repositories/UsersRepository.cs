@@ -80,7 +80,7 @@ public class UsersRepository : BasicRepository<User>
                 Balance = g.Sum(t => t.Category.Type == CategoryType.Income ? t.Amount : -t.Amount)
             })
             .OrderBy(dto => dto.AssetName)
-            .Select(a=>new UserAssetsDto(a.AssetId, a.AssetName, a.Balance))
+            .Select(a => new UserAssetsDto(a.AssetId, a.AssetName, a.Balance))
             .ToListAsync(cancellationToken);
 
         return userAssets;
@@ -112,7 +112,7 @@ public class UsersRepository : BasicRepository<User>
             .OrderByDescending(x => x.Date)
             .ThenBy(x => x.AssetName)
             .ThenBy(x => x.SubcategoryName)
-            .Select(x=> new UserTransactionsDto
+            .Select(x => new UserTransactionsDto
                 (
                     x.AssetName, 
                     x.SubcategoryName, 
@@ -172,7 +172,7 @@ public class UsersRepository : BasicRepository<User>
             })
             .OrderByDescending(dto => dto.TotalAmount)
             .ThenBy(dto => dto.CategoryName)
-            .Select(x=>new ParentCategoryTotalAmountDto(x.CategoryName, x.TotalAmount))
+            .Select(x => new ParentCategoryTotalAmountDto(x.CategoryName, x.TotalAmount))
             .ToListAsync(cancellationToken);
         
         return parentCategoryTotalAmount;

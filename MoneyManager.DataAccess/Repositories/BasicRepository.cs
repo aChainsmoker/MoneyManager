@@ -38,6 +38,6 @@ public class BasicRepository<T> : IBasicRepository<T> where T : EntityBase
 
     public async Task DeleteEntityAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        await _dbContext.Set<T>().Where(e=>e.Id == id).ExecuteDeleteAsync(cancellationToken);
+        await _dbContext.Set<T>().Where(e => e.Id == id).ExecuteDeleteAsync(cancellationToken);
     }
 }
